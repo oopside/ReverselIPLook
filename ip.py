@@ -1,6 +1,7 @@
 # -*- coding: cp1254 -*-
-from Tkinter import*
-import urllib2
+from tkinter import*
+from urllib.request import urlopen
+from urllib.request import Request
 import re
 import sys
 anapen = Tk()
@@ -21,29 +22,41 @@ victimbir.config(text=u"Victim:")
 victimbir.place(x=1,y=50)
 victimiki = Entry()
 victimiki.place(x=50,y=50)
+basla = Button(anapen)
+basla.config(text=u"Analiz")
+basla.pack()
+
+bilgi = Label(anapen, font=('Verdana', 16))
+bilgi.pack(side=BOTTOM, pady=150)
 
 uagent= {'User-Agent':'Mozilla/5.0 (Windows; U; Windows NT 6.0; en-US; rv:1.9.0.6)'}
-url = "http://viewdns.info/reverseip/?host=%s&t=1" % (victimiki)
 
-try:
-        req = urllib2.Request(url, headers=uagent)
-        fd = urllib2.urlopen(req)
-        data = fd.read()
+def baslat():
+    try:
+        url = "http://viewdns.info/reverseip/?host=%s&t=1" % victimiki.get()
+        req = Request(url, headers=uagent)
+        fd = urlopen(req)
+        data = str(fd.read())
 
         comp = re.compile("<tr><td>\S+</td><td")
+        comp2 = re.compile('\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}')
+        
         baglantilar = comp.findall(data)
-
         for i in baglantilar:
-        i = i.replace("<tr><td>", "").replace("</td><td", "")
+            i = i.replace("<tr><td>", "").replace("</td><td", "")
 
-        if i.startswith("http://"):
+            if i.startswith("http://"):
                 pass
-        else:
-                i = "http://"+i	
+            else:
+                i = "http://"+i   
 
-        if "Domain" not in i:
-                bilgi = Label(anapen)
-                bilgi.config(text=i)
-                bilgi.pack()
+            if "Domain" not in i:
+                ip = re.findall(comp2, data)
+                bilgi["text"] = ip
+
+    except:
+            pass
+
+basla.config(command=baslat)
 
 mainloop()
